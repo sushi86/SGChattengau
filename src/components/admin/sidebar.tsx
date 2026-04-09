@@ -20,14 +20,12 @@ const ADMIN_ITEMS = [
 ]
 
 const SPARTENLEITER_ITEMS = [
-  { href: '/admin', label: 'Dashboard' },
   { href: '/admin/sparten', label: 'Meine Sparte' },
   { href: '/admin/beitraege', label: 'Beiträge' },
   { href: '/admin/termine', label: 'Termine' },
 ]
 
 const KURSLEITER_ITEMS = [
-  { href: '/admin', label: 'Dashboard' },
   { href: '/admin/sparten', label: 'Mein Kurs' },
   { href: '/admin/beitraege', label: 'Beiträge' },
   { href: '/admin/termine', label: 'Termine' },
