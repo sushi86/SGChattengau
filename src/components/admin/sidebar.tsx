@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 
 interface SidebarProps {
   role: string
@@ -32,7 +33,7 @@ export function AdminSidebar({ role }: SidebarProps) {
 
   return (
     <aside className="w-full tablet:w-64 bg-white border-b tablet:border-b-0 tablet:border-r border-border shrink-0">
-      <nav className="flex tablet:flex-col p-2 tablet:p-4 gap-1 overflow-x-auto">
+      <nav className="flex tablet:flex-col tablet:h-full p-2 tablet:p-4 gap-1 overflow-x-auto">
         {items.map((item) => {
           const active = pathname === item.href ||
             (item.href !== '/admin' && pathname.startsWith(item.href))
@@ -51,6 +52,14 @@ export function AdminSidebar({ role }: SidebarProps) {
             </Link>
           )
         })}
+        {/* Logout */}
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm whitespace-nowrap
+            min-h-[44px] transition-colors text-error hover:bg-red-50 tablet:mt-auto"
+        >
+          Abmelden
+        </button>
       </nav>
     </aside>
   )
