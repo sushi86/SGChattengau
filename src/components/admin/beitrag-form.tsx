@@ -22,9 +22,10 @@ interface BeitragFormProps {
     veroeffentlicht: boolean
   }
   sparten: SparteOption[]
+  fixedSparteId?: string | null
 }
 
-export function BeitragForm({ beitrag, sparten }: BeitragFormProps) {
+export function BeitragForm({ beitrag, sparten, fixedSparteId }: BeitragFormProps) {
   const router = useRouter()
   const isNew = !beitrag
 
@@ -32,7 +33,7 @@ export function BeitragForm({ beitrag, sparten }: BeitragFormProps) {
   const [inhalt, setInhalt] = useState(beitrag?.inhalt || '')
   const [auszug, setAuszug] = useState(beitrag?.auszug || '')
   const [bildUrl, setBildUrl] = useState(beitrag?.bildUrl || '')
-  const [sparteId, setSparteId] = useState(beitrag?.sparteId || '')
+  const [sparteId, setSparteId] = useState(beitrag?.sparteId || fixedSparteId || '')
   const [veroeffentlicht, setVeroeffentlicht] = useState(beitrag?.veroeffentlicht ?? false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -109,9 +110,10 @@ export function BeitragForm({ beitrag, sparten }: BeitragFormProps) {
         <select
           value={sparteId}
           onChange={(e) => setSparteId(e.target.value)}
-          className="w-full rounded-md border border-border px-4 py-3 text-text-heading bg-white"
+          disabled={!!fixedSparteId}
+          className={`w-full rounded-md border border-border px-4 py-3 text-text-heading bg-white ${fixedSparteId ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
-          <option value="">Keine Zuordnung (Vereinsnews)</option>
+          {!fixedSparteId && <option value="">Keine Zuordnung (Vereinsnews)</option>}
           {sparten.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}

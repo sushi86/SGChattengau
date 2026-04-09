@@ -22,6 +22,7 @@ interface TerminFormProps {
     sparteId: string | null
   }
   sparten: SparteOption[]
+  fixedSparteId?: string | null
 }
 
 function toDatetimeLocal(iso: string): string {
@@ -38,7 +39,7 @@ function toDateLocal(iso: string): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-export function TerminForm({ termin, sparten }: TerminFormProps) {
+export function TerminForm({ termin, sparten, fixedSparteId }: TerminFormProps) {
   const router = useRouter()
   const isNew = !termin
 
@@ -54,7 +55,7 @@ export function TerminForm({ termin, sparten }: TerminFormProps) {
     return toDatetimeLocal(termin.endzeit)
   })
   const [ort, setOrt] = useState(termin?.ort || '')
-  const [sparteId, setSparteId] = useState(termin?.sparteId || '')
+  const [sparteId, setSparteId] = useState(termin?.sparteId || fixedSparteId || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -176,9 +177,10 @@ export function TerminForm({ termin, sparten }: TerminFormProps) {
         <select
           value={sparteId}
           onChange={(e) => setSparteId(e.target.value)}
-          className="w-full rounded-md border border-border px-4 py-3 text-text-heading bg-white"
+          disabled={!!fixedSparteId}
+          className={`w-full rounded-md border border-border px-4 py-3 text-text-heading bg-white ${fixedSparteId ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
-          <option value="">Keine Zuordnung (Vereinstermin)</option>
+          {!fixedSparteId && <option value="">Keine Zuordnung (Vereinstermin)</option>}
           {sparten.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}

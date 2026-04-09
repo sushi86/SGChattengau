@@ -17,7 +17,7 @@ export default async function NeuTerminPage() {
     <div>
       <h1 className="font-heading text-h1 text-text-heading mb-6">Neuer Termin</h1>
       <div className="bg-white p-6 rounded-lg border border-border max-w-3xl">
-        <TerminForm sparten={sparten} />
+        <TerminForm sparten={sparten} fixedSparteId={session.user.role !== 'ADMIN' ? session.user.sparteId : null} />
       </div>
     </div>
   )

@@ -19,9 +19,16 @@ const ADMIN_ITEMS = [
   { href: '/admin/nutzer', label: 'Nutzer' },
 ]
 
-const LEITER_ITEMS = [
+const SPARTENLEITER_ITEMS = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/sparten', label: 'Meine Sparte' },
+  { href: '/admin/beitraege', label: 'Beiträge' },
+  { href: '/admin/termine', label: 'Termine' },
+]
+
+const KURSLEITER_ITEMS = [
+  { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/sparten', label: 'Mein Kurs' },
   { href: '/admin/beitraege', label: 'Beiträge' },
   { href: '/admin/termine', label: 'Termine' },
   { href: '/admin/kurse', label: 'Teilnehmer' },
@@ -29,7 +36,7 @@ const LEITER_ITEMS = [
 
 export function AdminSidebar({ role }: SidebarProps) {
   const pathname = usePathname()
-  const items = role === 'ADMIN' ? ADMIN_ITEMS : LEITER_ITEMS
+  const items = role === 'ADMIN' ? ADMIN_ITEMS : role === 'KURSLEITER' ? KURSLEITER_ITEMS : SPARTENLEITER_ITEMS
 
   return (
     <aside className="w-full tablet:w-64 bg-white border-b tablet:border-b-0 tablet:border-r border-border shrink-0">

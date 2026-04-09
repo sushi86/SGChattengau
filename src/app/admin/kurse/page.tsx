@@ -7,8 +7,11 @@ export default async function AdminKursePage() {
   const session = await auth()
   if (!session?.user) redirect('/login')
 
+  // Spartenleiter: kein Zugriff auf Kurse
+  if (session.user.role === 'SPARTENLEITER') redirect('/admin')
+
   // Kursleiter: direkt zu ihrem Kurs
-  if (session.user.role !== 'ADMIN' && session.user.sparteId) {
+  if (session.user.role === 'KURSLEITER' && session.user.sparteId) {
     const kurs = await prisma.sparte.findFirst({
       where: { id: session.user.sparteId, typ: 'KURS' },
     })

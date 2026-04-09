@@ -17,7 +17,7 @@ export default async function NeuBeitragPage() {
     <div>
       <h1 className="font-heading text-h1 text-text-heading mb-6">Neuer Beitrag</h1>
       <div className="bg-white p-6 rounded-lg border border-border max-w-3xl">
-        <BeitragForm sparten={sparten} />
+        <BeitragForm sparten={sparten} fixedSparteId={session.user.role !== 'ADMIN' ? session.user.sparteId : null} />
       </div>
     </div>
   )
