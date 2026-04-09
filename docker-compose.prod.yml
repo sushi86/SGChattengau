@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sg_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sg_password}
+      POSTGRES_DB: sg_website
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  app:
+    image: ghcr.io/sushi86/sgchattengau:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://sg_user:${POSTGRES_PASSWORD:-sg_password}@db:5432/sg_website?schema=public"
+      NEXTAUTH_URL: "${NEXTAUTH_URL:-https://sg1898chattengau.de}"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET}"
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_REFRESH_SECRET: "${JWT_REFRESH_SECRET}"
+      IBAN_ENCRYPTION_KEY: "${IBAN_ENCRYPTION_KEY}"
+      SUMUP_API_KEY: "${SUMUP_API_KEY:-}"
+      SUMUP_MERCHANT_CODE: "${SUMUP_MERCHANT_CODE:-}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@sg1898chattengau.de}"
+    volumes:
+      - uploads:/app/public/uploads
+    networks:
+      - internal
+      - npm_default
+
+volumes:
+  postgres_data:
+  uploads:
+
+networks:
+  internal:
+  npm_default:
+    external: true

@@ -1,3 +1,4 @@
+# Development only — use docker-compose.prod.yml for production/Portainer
 services:
   db:
     image: postgres:16-alpine
@@ -10,18 +11,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  app:
-    build: .
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: "postgresql://sg_user:sg_password@db:5432/sg_website?schema=public"
-    depends_on:
-      - db
-    profiles:
-      - production
 
 volumes:
   postgres_data:
