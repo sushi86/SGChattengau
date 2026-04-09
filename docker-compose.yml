@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sg_user
+      POSTGRES_PASSWORD: sg_password
+      POSTGRES_DB: sg_website
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://sg_user:sg_password@db:5432/sg_website?schema=public"
+    depends_on:
+      - db
+    profiles:
+      - production
+
+volumes:
+  postgres_data:

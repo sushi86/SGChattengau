@@ -1,0 +1,334 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// === AUTH ===
+
+enum UserRole {
+  ADMIN
+  SPARTENLEITER
+  KURSLEITER
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  name           String
+  role           UserRole  @default(SPARTENLEITER)
+  sparteId       String?
+  sparte         Sparte?   @relation(fields: [sparteId], references: [id])
+  refreshTokens  RefreshToken[]
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// === SPARTEN ===
+
+enum SparteTyp {
+  SPARTE
+  KURS
+}
+
+model Sparte {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  beschreibung    String?   @db.Text
+  typ             SparteTyp @default(SPARTE)
+  isActive        Boolean   @default(true)
+  sortOrder       Int       @default(0)
+
+  trainingszeiten Trainingszeit[]
+  ansprechpartner Ansprechpartner[]
+  bilder          SparteBild[]
+  termine         Termin[]
+  beitraege       Beitrag[]
+  mitgliedsantraege Mitgliedsantrag[]
+  leiter          User[]
+
+  // Kurs-spezifische Felder (nur bei typ=KURS)
+  maxTeilnehmer              Int?
+  preisZehnerkarteMitglied   Float?   @default(30)
+  preisZehnerkarteGast       Float?   @default(60)
+  kursBeginn                 DateTime?
+  kursEnde                   DateTime?
+
+  zehnerkarten    Zehnerkarte[]
+  kursBuchungen   KursBuchung[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Trainingszeit {
+  id        String  @id @default(cuid())
+  sparteId  String
+  sparte    Sparte  @relation(fields: [sparteId], references: [id], onDelete: Cascade)
+  wochentag Int     // 0=Mo, 1=Di, ..., 6=So
+  startzeit String  // "18:00"
+  endzeit   String  // "20:00"
+  ort       String?
+  hinweis   String?
+}
+
+model Ansprechpartner {
+  id       String  @id @default(cuid())
+  sparteId String
+  sparte   Sparte  @relation(fields: [sparteId], references: [id], onDelete: Cascade)
+  name     String
+  rolle    String?
+  telefon  String?
+  email    String?
+}
+
+model SparteBild {
+  id       String  @id @default(cuid())
+  sparteId String
+  sparte   Sparte  @relation(fields: [sparteId], references: [id], onDelete: Cascade)
+  url      String
+  alt      String?
+  sortOrder Int    @default(0)
+}
+
+// === MITGLIEDSANTRÄGE ===
+
+enum AntragStatus {
+  EINGEGANGEN
+  IN_BEARBEITUNG
+  ABGESCHLOSSEN
+  EXPORTIERT
+  ABGELEHNT
+}
+
+model Mitgliedsantrag {
+  id                    String       @id @default(cuid())
+  status                AntragStatus @default(EINGEGANGEN)
+
+  nachname              String
+  vorname               String
+  strasse               String
+  plz                   String
+  ort                   String
+  telefon               String?
+  email                 String
+  geburtsdatum          DateTime
+  geschlecht            String
+  erziehungsberechtigter String?
+
+  eintrittsdatum        DateTime
+  sparteId              String
+  sparte                Sparte       @relation(fields: [sparteId], references: [id])
+
+  ibanEncrypted         String
+  ibanLast4             String
+  kontoinhaberEncrypted String
+  kreditinstitut        String
+
+  signaturMitgliedEncrypted  String?  @db.Text
+  signaturSepaEncrypted      String?  @db.Text
+  signaturErzBerechEncrypted String?  @db.Text
+
+  satzungAkzeptiert     Boolean
+  datenschutzAkzeptiert Boolean
+  sepaAkzeptiert        Boolean
+
+  ipAdresse             String?
+  userAgent             String?
+  createdAt             DateTime     @default(now())
+  bearbeitetAm          DateTime?
+  bearbeitetVon         String?
+  exportiertAm          DateTime?
+}
+
+// === MITGLIED (vorbereitet, noch nicht aktiv) ===
+
+enum MitgliedStatus {
+  AKTIV
+  RUHEND
+  AUSGETRETEN
+  ARCHIVIERT
+}
+
+model Mitglied {
+  id                String         @id @default(cuid())
+  mitgliedsnummer   String         @unique
+  status            MitgliedStatus @default(AKTIV)
+
+  nachname          String
+  vorname           String
+  strasse           String
+  plz               String
+  ort               String
+  telefon           String?
+  email             String?
+  geburtsdatum      DateTime
+  geschlecht        String
+
+  ibanEncrypted         String?
+  ibanLast4             String?
+  kontoinhaberEncrypted String?
+  kreditinstitut        String?
+  mandatsreferenz       String?    @unique
+  mandatsDatum          DateTime?
+
+  eintrittsdatum    DateTime
+  austrittsdatum    DateTime?
+  familienverbundId String?
+  istHauptzahler    Boolean    @default(false)
+  ausAntragId       String?
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+// === TERMINE ===
+
+model Termin {
+  id           String   @id @default(cuid())
+  titel        String
+  beschreibung String?  @db.Text
+  startzeit    DateTime
+  endzeit      DateTime?
+  ort          String?
+  ganztaegig   Boolean  @default(false)
+  sparteId     String?
+  sparte       Sparte?  @relation(fields: [sparteId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// === NEWS / BEITRÄGE ===
+
+model Beitrag {
+  id           String   @id @default(cuid())
+  titel        String
+  slug         String   @unique
+  inhalt       String   @db.Text
+  auszug       String?
+  bildUrl      String?
+  sparteId     String?
+  sparte       Sparte?  @relation(fields: [sparteId], references: [id])
+  veroeffentlicht Boolean @default(false)
+  authorId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// === VEREINSHEIM-BUCHUNG ===
+
+enum BuchungStatus {
+  ANGEFRAGT
+  GENEHMIGT
+  ABGELEHNT
+  STORNIERT
+}
+
+model Buchung {
+  id           String        @id @default(cuid())
+  status       BuchungStatus @default(ANGEFRAGT)
+  name         String
+  email        String
+  telefon      String?
+  datum        DateTime
+  startzeit    String
+  endzeit      String
+  anlass       String
+  nachricht    String?       @db.Text
+  bearbeitetAm DateTime?
+  bearbeitetVon String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// === SYSTEM-KONFIGURATION ===
+
+model SystemConfig {
+  key          String   @id
+  value        String   @db.Text
+  encrypted    Boolean  @default(false)
+  description  String?
+  updatedAt    DateTime @updatedAt
+}
+
+// === KURS-SYSTEM (Phase 6) ===
+
+model Zehnerkarte {
+  id              String    @id @default(cuid())
+  sparteId        String
+  sparte          Sparte    @relation(fields: [sparteId], references: [id])
+  kaeuferVorname  String
+  kaeuferNachname String
+  kaeuferEmail    String
+  istMitglied     Boolean
+  preis           Float
+  verbleibend     Int       @default(10)
+  zahlungId       String?   @unique
+  zahlung         Zahlung?  @relation(fields: [zahlungId], references: [id])
+  buchungen       KursBuchung[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum AnwesenheitStatus {
+  GEBUCHT
+  ANWESEND
+  ABWESEND
+  STORNIERT
+}
+
+model KursBuchung {
+  id              String             @id @default(cuid())
+  sparteId        String
+  sparte          Sparte             @relation(fields: [sparteId], references: [id])
+  teilnehmerVorname  String
+  teilnehmerNachname String
+  teilnehmerEmail    String
+  datum           DateTime
+  zehnerkarteId   String?
+  zehnerkarte     Zehnerkarte?       @relation(fields: [zehnerkarteId], references: [id])
+  anwesenheit     AnwesenheitStatus  @default(GEBUCHT)
+  zahlungId       String?            @unique
+  zahlung         Zahlung?           @relation(fields: [zahlungId], references: [id])
+  createdAt       DateTime           @default(now())
+}
+
+enum ZahlungStatus {
+  AUSSTEHEND
+  BEZAHLT
+  FEHLGESCHLAGEN
+  ERSTATTET
+}
+
+enum ZahlungTyp {
+  ZEHNERKARTE
+  EINZELBUCHUNG
+}
+
+model Zahlung {
+  id              String         @id @default(cuid())
+  betrag          Float
+  status          ZahlungStatus  @default(AUSSTEHEND)
+  typ             ZahlungTyp
+  sumupCheckoutId String?        @unique
+  sumupTxCode     String?
+  zehnerkarte     Zehnerkarte?
+  kursBuchung     KursBuchung?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}

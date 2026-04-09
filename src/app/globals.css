@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+@config '../../tailwind.config.ts';
+
+/* Desktop typography overrides */
+@media (min-width: 1024px) {
+  h1, .text-h1 { font-size: 1.875rem; }
+  h2, .text-h2 { font-size: 1.625rem; }
+  h3, .text-h3 { font-size: 1.375rem; }
+  body { font-size: 1rem; }
+}
